@@ -14,8 +14,8 @@
 #include "log.h"
 #include "util.h"
 #include "performance.h"
-#include "vmcs.h"
-#include "vmx.h"
+#include "../kHypervisor/vmcs.h"
+#include "../kHypervisor/vmx.h"
 #pragma warning(disable: 4505)
 extern "C" {
 	////////////////////////////////////////////////////////////////////////////////
