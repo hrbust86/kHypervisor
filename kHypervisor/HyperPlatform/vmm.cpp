@@ -1254,6 +1254,9 @@ extern "C" {
 			vmcs_field = VmcsField::kGuestFsBase;
 			transfer_to_vmcs = true;
 			break;
+         case Msr::kIa32svmcr:
+            //KdBreakPoint();
+            break;
 		default:
 			break;
 		}

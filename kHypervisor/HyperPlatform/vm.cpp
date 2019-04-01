@@ -15,6 +15,7 @@
 #include "log.h"
 #include "util.h"
 #include "vmm.h"
+#include "../SampleSvm/SimpleSvm.hpp"
 
 extern "C" {
 	////////////////////////////////////////////////////////////////////////////////
@@ -271,24 +272,35 @@ extern "C" {
 	_Use_decl_annotations_ static void *VmpBuildMsrBitmap() {
 		PAGED_CODE();
 
-		const auto msr_bitmap = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE,
+		const auto msr_bitmap = ExAllocatePoolWithTag(NonPagedPool, 2*PAGE_SIZE,
 			kHyperPlatformCommonPoolTag);
 		if (!msr_bitmap) {
 			return nullptr;
 		}
-		RtlZeroMemory(msr_bitmap, PAGE_SIZE);
+		RtlZeroMemory(msr_bitmap, 2*PAGE_SIZE);
+
+// 		MSRPM Byte Offset					MSR Range 
+// 			000h每7FFh								0000_0000h每0000_1FFFh 
+// 			800h每FFFh								C000_0000h每C000_1FFFh 
+// 			1000h每17FFh							C001_0000h每C001_1FFFh 
+// 			1800h每1FFFh							Reserved
 
 		// Activate VM-exit for RDMSR against all MSRs
 		const auto bitmap_read_low = reinterpret_cast<UCHAR *>(msr_bitmap);
 		const auto bitmap_read_high = bitmap_read_low + 1024;
 		const auto bitmap_write_low = bitmap_read_low + 2048;
 		const auto bitmap_write_high = bitmap_read_low + 3072;
+        const auto bitmap_other_read_low = bitmap_read_low + 4096;
+		// read Reserved
+        const auto bitmap_other_write_low = bitmap_read_low + 6144;
+		// write Reserved
 
 		RtlFillMemory(bitmap_read_low, 1024, 0xff);   // read        0 -     1fff
 		RtlFillMemory(bitmap_read_high, 1024, 0xff);  // read c0000000 - c0001fff
 		RtlFillMemory(bitmap_write_low, 1024, 0xff);   // write        0 -     1fff
 		RtlFillMemory(bitmap_write_high, 1024, 0);  // write c0000000 - c0001fff
-
+        RtlFillMemory(bitmap_other_read_low, 1024, 0);  // read C001_0000h每C001_1FFFh 
+		RtlFillMemory(bitmap_other_write_low, 1024, 0); // write C001_0000h每C001_1FFFh 
 
 													  // Ignore IA32_MPERF (000000e7) and IA32_APERF (000000e8)
 		RTL_BITMAP bitmap_read_low_header = {};
@@ -314,6 +326,16 @@ extern "C" {
 
 		RtlClearBits(&bitmap_read_high_header, 0x101, 2);
 
+				// for NEST SVM
+				RTL_BITMAP bitmap_other_read_low_header = {};
+                RtlInitializeBitMap(&bitmap_other_read_low_header, 
+					reinterpret_cast<PULONG>(bitmap_other_read_low), 1024 * CHAR_BIT);
+				RtlSetBits(&bitmap_other_read_low_header, (SVM_MSR_VM_CR & 0xFFFF), 1);
+
+				RTL_BITMAP bitmap_other_write_low_header = {};
+				RtlInitializeBitMap(&bitmap_other_write_low_header, 
+					reinterpret_cast<PULONG>(bitmap_other_write_low), 1024 * CHAR_BIT);
+				RtlSetBits(&bitmap_other_write_low_header, (SVM_MSR_VM_CR & 0xFFFF), 1);
 
 		/*
 		RTL_BITMAP bitmap_write_high_header = {};

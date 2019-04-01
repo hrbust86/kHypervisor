@@ -102,6 +102,9 @@
     <ClInclude Include="vmx_common.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="..\SampleSvm\SimpleSvm.hpp">
+      <Filter>SampleSvm</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="kHypervisor.inf" />
@@ -120,6 +123,9 @@
     </Filter>
     <Filter Include="Source">
       <UniqueIdentifier>{6a95ba81-244d-489f-98f5-3fc3036eb376}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SampleSvm">
+      <UniqueIdentifier>{35113f9f-b0cb-4164-a15f-8b4d58ef29e9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
