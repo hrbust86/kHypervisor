@@ -16,6 +16,8 @@
 #include "performance.h"
 #include "../kHypervisor/vmcs.h"
 #include "../kHypervisor/vmx.h"
+#include "../SampleSvm/SimpleSvm.hpp"
+
 #pragma warning(disable: 4505)
 extern "C" {
 	////////////////////////////////////////////////////////////////////////////////
@@ -1254,9 +1256,6 @@ extern "C" {
 			vmcs_field = VmcsField::kGuestFsBase;
 			transfer_to_vmcs = true;
 			break;
-         case Msr::kIa32svmcr:
-            //KdBreakPoint();
-            break;
 		default:
 			break;
 		}
@@ -1304,6 +1303,12 @@ extern "C" {
 					case Msr::kIa32KernelGsBase:
 						 msr_value.QuadPart = guest_context->stack->processor_data->GuestKernelGsBase.QuadPart;
 					break;
+                    case Msr::kIa32svmcr: 
+                    {
+                        msr_value.QuadPart = UtilReadMsr64(msr);
+                        msr_value.LowPart &= SVM_VM_CR_SVMDIS;
+                        break; 
+                    }
 					default:
 					{
 						msr_value.QuadPart = UtilReadMsr64(msr);
