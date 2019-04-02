@@ -1161,6 +1161,29 @@ extern "C" {
 			cpu_info[0] = 'PpyH';
 		}
 
+        switch (function_id) // for amd nest
+        {
+        case CPUID_MAX_STANDARD_FN_NUMBER_AND_VENDOR_STRING:
+        {
+            cpu_info[1] = 'htuA';
+            cpu_info[3] = 'itne';
+            cpu_info[2] = 'DMAc';
+            break;
+        }
+        case CPUID_PROCESSOR_AND_PROCESSOR_FEATURE_IDENTIFIERS_EX: 
+        {
+            cpu_info[2] |= CPUID_FN8000_0001_ECX_SVM;
+            break;
+        }
+        case CPUID_SVM_FEATURES:
+        {
+            cpu_info[3] |= CPUID_FN8000_000A_EDX_NP;
+            break;
+        }
+         default:
+            break;
+        }
+
 		guest_context->gp_regs->ax = cpu_info[0];
 		guest_context->gp_regs->bx = cpu_info[1];
 		guest_context->gp_regs->cx = cpu_info[2];
