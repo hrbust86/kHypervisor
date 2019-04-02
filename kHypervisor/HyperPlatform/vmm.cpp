@@ -1332,6 +1332,11 @@ extern "C" {
                         msr_value.LowPart &= SVM_VM_CR_SVMDIS;
                         break; 
                     }
+                    case Msr::kIa32Efer: // for amd nest
+                    {
+                        msr_value.QuadPart = guest_context->stack->processor_data->GuestMsrEFER.QuadPart;
+                        break;
+                    }
 					default:
 					{
 						msr_value.QuadPart = UtilReadMsr64(msr);
@@ -1373,6 +1378,11 @@ extern "C" {
 					case Msr::kIa32KernelGsBase:
 						guest_context->stack->processor_data->GuestKernelGsBase.QuadPart = msr_value.QuadPart;
 					break;
+                    case Msr::kIa32Efer: // for amd nest
+                    {
+                        guest_context->stack->processor_data->GuestMsrEFER.QuadPart = msr_value.QuadPart;
+                        break;
+                    }
 					default:
 						UtilWriteMsr64(msr, msr_value.QuadPart); 
 					break;

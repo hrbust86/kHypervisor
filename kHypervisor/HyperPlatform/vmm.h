@@ -79,6 +79,7 @@ struct ProcessorData {
 	LARGE_INTEGER GuestKernelGsBase;		  ///guest_gs_kernel_base  
 	VCPUVMX*		vcpu_vmx;				  //!< For nested vmx context
 	CPU_MODE		CpuMode;				  //!< For CPU Mode 
+    LARGE_INTEGER        GuestMsrEFER;          // for amd nest 
 
 #ifdef ENABLE_NESTED_EPT
 	EptData*		EptDat02;					

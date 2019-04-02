@@ -7,6 +7,7 @@
 /// Implements VMM initialization functions.
 
 #include "vm.h"
+#include "ia32_type.h"
 #include <limits.h>
 #include <intrin.h>
 #include "asm.h"
@@ -337,6 +338,11 @@ extern "C" {
 					reinterpret_cast<PULONG>(bitmap_other_write_low), 1024 * CHAR_BIT);
 				RtlSetBits(&bitmap_other_write_low_header, (SVM_MSR_VM_CR & 0xFFFF), 1);
 
+                RTL_BITMAP bitmap_write_high_header = {};
+                RtlInitializeBitMap(&bitmap_write_high_header, 
+                   reinterpret_cast<PULONG>(bitmap_write_high), 1024 * CHAR_BIT);
+                RtlSetBits(&bitmap_write_high_header, (0xC0000080 & 0xFFFF), 1);               
+
 		/*
 		RTL_BITMAP bitmap_write_high_header = {};
 		RtlInitializeBitMap(&bitmap_write_high_header,
@@ -414,6 +420,7 @@ extern "C" {
 		processor_data->shared_data = shared_data;
 		processor_data->vcpu_vmx = NULL;
 		processor_data->CpuMode = ProtectedMode;
+        processor_data->GuestMsrEFER.QuadPart = __readmsr((ULONGLONG)Msr::kIa32Efer);
 
 		InterlockedIncrement(&processor_data->shared_data->reference_count);
 
