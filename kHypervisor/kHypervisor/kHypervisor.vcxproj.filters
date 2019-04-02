@@ -43,6 +43,9 @@
     <ClCompile Include="vmx_common.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="..\SampleSvm\nest_svm_handler.cpp">
+      <Filter>SampleSvm</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\HyperPlatform\asm.h">

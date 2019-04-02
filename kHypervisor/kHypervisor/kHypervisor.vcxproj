@@ -150,6 +150,7 @@
     <ClCompile Include="..\HyperPlatform\power_callback.cpp" />
     <ClCompile Include="..\HyperPlatform\util.cpp" />
     <ClCompile Include="..\HyperPlatform\\vm.cpp" />
+    <ClCompile Include="..\SampleSvm\nest_svm_handler.cpp" />
     <ClCompile Include="vmcs.cpp" />
     <ClCompile Include="..\HyperPlatform\vmm.cpp" />
     <ClCompile Include="vmx.cpp" />

@@ -88,6 +88,11 @@ extern "C" {
 	//
 	// prototypes
 	//
+    // for nest svm
+
+    bool VmmHandleSvmOpcodeForL1(GuestContext *guest_context);
+    ///////////////////////////////////////////////////////////////////////////////
+
 
 	bool __stdcall VmmVmExitHandler(_Inout_ VmmInitialStack *stack);
 
@@ -1079,6 +1084,16 @@ extern "C" {
 
 		}
 		else if (interruption_type == InterruptionType::kHardwareException) {
+                  HYPERPLATFORM_COMMON_DBG_BREAK();
+            // for get amd svm code 
+            if (InterruptionVector::kInvalidOpcodeException == vector)
+            {
+                const auto error_code =
+					static_cast<ULONG32>(UtilVmRead(VmcsField::kVmExitIntrErrorCode));
+
+				VmmpInjectInterruption(interruption_type, vector, true, error_code);
+            }
+
 			if (vector == InterruptionVector::kDebugException) 
 			{
 				HYPERPLATFORM_LOG_DEBUG("#Tf: %x %I64X %I64X %I64X %I64x", interruption_type, UtilVmRead(VmcsField::kGuestRip), UtilVmRead(VmcsField::kGuestRflags), UtilVmRead(VmcsField::kGuestCr0), UtilVmRead(VmcsField::kGuestCr4));
@@ -1113,6 +1128,7 @@ extern "C" {
 
 		}
 		else if (interruption_type == InterruptionType::kSoftwareException) {
+                  HYPERPLATFORM_COMMON_DBG_BREAK();
 			// Software exception
 			if (vector == InterruptionVector::kBreakpointException) {
 				// #BP
@@ -2374,4 +2390,18 @@ extern "C" {
 		}
 		UtilVmWrite(VmcsField::kGuestRflags, guest_context->flag_reg.all);
 	}
+
+    bool VmmHandleSvmOpcodeForL1(GuestContext *guest_context) 
+    {
+          const auto exit_inst_length = UtilVmRead(VmcsField::kVmExitInstructionLen);
+          if (3 != exit_inst_length)  // svm code length is 3
+          {
+            return false;
+          }
+
+          char svm_opcode[3] = {0};
+
+          return true;
+   }
+
 }  // extern "C"

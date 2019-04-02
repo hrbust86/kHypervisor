@@ -701,12 +701,13 @@ extern "C" {
 		VmxSecondaryProcessorBasedControls vm_procctl2 = { VmpAdjustControlValue(
 			Msr::kIa32VmxProcBasedCtls2, vm_procctl2_requested.all) };
 
-		// NOTE: Comment in any of those as needed
-		const auto exception_bitmap =
+		// NOTE: Comment in any of those as needed 
+        // for amd nest
+		const auto exception_bitmap = 1 << InterruptionVector::kInvalidOpcodeException;
 			// 1 << InterruptionVector::kBreakpointException |
 			// 1 << InterruptionVector::kGeneralProtectionException |
 			//  1 << InterruptionVector::kPageFaultException |
-			0;
+			//0;
 
 		// Set up CR0 and CR4 bitmaps
 		// - Where a bit is     masked, the shadow bit appears
