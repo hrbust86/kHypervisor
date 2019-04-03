@@ -1084,14 +1084,21 @@ extern "C" {
 
 		}
 		else if (interruption_type == InterruptionType::kHardwareException) {
-                  HYPERPLATFORM_COMMON_DBG_BREAK();
+                  //HYPERPLATFORM_COMMON_DBG_BREAK();
             // for get amd svm code 
             if (InterruptionVector::kInvalidOpcodeException == vector)
             {
-                const auto error_code =
-					static_cast<ULONG32>(UtilVmRead(VmcsField::kVmExitIntrErrorCode));
-
-				VmmpInjectInterruption(interruption_type, vector, true, error_code);
+                if (VmmHandleSvmOpcodeForL1(guest_context))
+                {
+                     const auto exit_inst_length = SVM_OPCODE_LEN;
+                     UtilVmWrite(VmcsField::kVmEntryInstructionLen, exit_inst_length);
+                     UtilVmWrite(VmcsField::kGuestRip, guest_context->ip + exit_inst_length);
+                     return;
+                }
+                else 
+                {
+                    return VmmpInjectInterruption(interruption_type, vector, false, 0);
+                }
             }
 
 			if (vector == InterruptionVector::kDebugException) 
@@ -2393,15 +2400,33 @@ extern "C" {
 
     bool VmmHandleSvmOpcodeForL1(GuestContext *guest_context) 
     {
-          const auto exit_inst_length = UtilVmRead(VmcsField::kVmExitInstructionLen);
-          if (3 != exit_inst_length)  // svm code length is 3
+//           const auto exit_inst_length = UtilVmRead(VmcsField::kVmExitInstructionLen);
+//           if (3 != exit_inst_length)  // svm code length is 3
+//           {
+//             return false;
+//           }
+//    invalid opcode fault make VmcsField::kVmExitInstructionLen error. so this should use udis86 to check
+           bool ret = true;
+          ULONG uOpcode = 0;
+           memcpy(&uOpcode, (char *)guest_context->ip, SVM_OPCODE_LEN);
+          
+          switch (uOpcode) 
           {
-            return false;
+            case 0xDB010F: // vmsave
+                break;
+            case 0xDA010F: // VMLOAD
+                break;
+            case 0xD9010F: // VMMCALL
+                break;
+            case 0xD8010F: // VMRUN
+                break;
+            default:
+                ret = false;
+                break;
           }
+          
 
-          char svm_opcode[3] = {0};
-
-          return true;
+          return ret;
    }
 
 }  // extern "C"

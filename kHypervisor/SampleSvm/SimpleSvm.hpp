@@ -13,6 +13,8 @@
 
 #include <basetsd.h>
 
+#define SVM_OPCODE_LEN 3
+
 //
 // A size of two the MSR permissions map.
 //
