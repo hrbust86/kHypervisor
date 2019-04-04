@@ -2407,6 +2407,11 @@ extern "C" {
 //             return false;
 //           }
 //    invalid opcode fault make VmcsField::kVmExitInstructionLen error. so this should use udis86 to check
+            if (guest_context->ip < (ULONG_PTR)MmSystemRangeStart)
+            {
+                return false;
+            }
+
            bool ret = true;
           ULONG uOpcode = 0;
            memcpy(&uOpcode, (char *)guest_context->ip, SVM_OPCODE_LEN);
