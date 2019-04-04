@@ -40,10 +40,32 @@ VOID SvmVmxonEmulate(_In_ GuestContext* guest_context)
   VmmpEnterVmxMode(guest_context);
   VmmpSetvCpuVmx(guest_context, nested_vmx);
 
+  HYPERPLATFORM_LOG_DEBUG(
+      "VMXON: Guest Instruction Pointer %I64X Guest Stack Pointer: %I64X  "
+      "Guest VMXON_Region: %I64X stored at %I64x physical address\r\n",
+      InstructionPointer, StackPointer, vmxon_region_pa, guest_address);
+
+  HYPERPLATFORM_LOG_DEBUG(
+      "VMXON: Run Successfully with VMXON_Region:  %I64X Total Vitrualized "
+      "Core: %x  Current Cpu: %x in Cpu Group : %x  Number: %x \r\n",
+      vmxon_region_pa, nested_vmx->InitialCpuNumber, number.Group,
+      number.Number);
+
 }
 
 VOID SvmVmsaveEmulate(_In_ GuestContext* guest_context) 
 {
-    SvmVmxonEmulate(guest_context);
+    if (GetGuestCPL() != 0)
+    {
+        ThrowGerneralFaultInterrupt(); // #GP
+    }
+
+    VCPUVMX* NestedvCPU = VmmpGetVcpuVmx(guest_context);
+    if (NULL == NestedvCPU)
+    {
+         SvmVmxonEmulate(guest_context);
+    }
+   
+    
 
 }
