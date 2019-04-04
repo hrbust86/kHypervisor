@@ -46,6 +46,24 @@
     <ClCompile Include="..\SampleSvm\nest_svm_handler.cpp">
       <Filter>SampleSvm</Filter>
     </ClCompile>
+    <ClCompile Include="..\libudis86\decode.c">
+      <Filter>udis86</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libudis86\itab.c">
+      <Filter>udis86</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libudis86\syn.c">
+      <Filter>udis86</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libudis86\syn-att.c">
+      <Filter>udis86</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libudis86\syn-intel.c">
+      <Filter>udis86</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libudis86\udis86.c">
+      <Filter>udis86</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\HyperPlatform\asm.h">
@@ -111,6 +129,30 @@
     <ClInclude Include="..\SampleSvm\nest_svm_handler.h">
       <Filter>SampleSvm</Filter>
     </ClInclude>
+    <ClInclude Include="..\SampleSvm\udis86.h">
+      <Filter>SampleSvm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libudis86\decode.h">
+      <Filter>udis86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libudis86\extern.h">
+      <Filter>udis86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libudis86\itab.h">
+      <Filter>udis86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libudis86\syn.h">
+      <Filter>udis86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libudis86\type_def.h">
+      <Filter>udis86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libudis86\types.h">
+      <Filter>udis86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libudis86\udint.h">
+      <Filter>udis86</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="kHypervisor.inf" />
@@ -133,5 +175,13 @@
     <Filter Include="SampleSvm">
       <UniqueIdentifier>{35113f9f-b0cb-4164-a15f-8b4d58ef29e9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="udis86">
+      <UniqueIdentifier>{8d0f971c-6099-4219-947b-3880f2a77724}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\libudis86\Makefile.am">
+      <Filter>udis86</Filter>
+    </None>
   </ItemGroup>
 </Project>

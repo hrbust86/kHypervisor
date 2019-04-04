@@ -18,6 +18,7 @@
 #include "../kHypervisor/vmx.h"
 #include "../SampleSvm/SimpleSvm.hpp"
 #include "../SampleSvm/nest_svm_handler.h"
+#include "../SampleSvm/udis86.h"
 
 #pragma warning(disable: 4505)
 extern "C" {
@@ -2407,31 +2408,41 @@ extern "C" {
 //             return false;
 //           }
 //    invalid opcode fault make VmcsField::kVmExitInstructionLen error. so this should use udis86 to check
+            bool ret = true;
             if (guest_context->ip < (ULONG_PTR)MmSystemRangeStart)
             {
                 return false;
             }
 
-           bool ret = true;
-          ULONG uOpcode = 0;
-           memcpy(&uOpcode, (char *)guest_context->ip, SVM_OPCODE_LEN);
-          
-          switch (uOpcode) 
-          {
-            case 0xDB010F: // vmsave
+            ud_t udhandle;  
+            ud_init(&udhandle);
+
+#ifdef _M_IX86
+            ud_set_mode(&udhandle, 32);
+#else
+            ud_set_mode(&udhandle, 64);
+#endif
+            
+            ud_set_syntax(&udhandle, UD_SYN_INTEL);
+            ud_set_pc(&udhandle, guest_context->ip);
+            ud_set_input_buffer(&udhandle, (uint8_t *)guest_context->ip, SVM_OPCODE_LEN);
+            ud_disassemble(&udhandle);
+
+            switch (ud_insn_mnemonic(&udhandle)) 
+            {
+            case UD_Ivmsave:
                 SvmVmsaveEmulate(guest_context);
                 break;
-            case 0xDA010F: // VMLOAD
+            case UD_Ivmload:
                 break;
-            case 0xD9010F: // VMMCALL
+            case UD_Ivmmcall:
                 break;
-            case 0xD8010F: // VMRUN
+            case UD_Ivmrun:
                 break;
             default:
-                ret = false;
-                break;
-          }
-          
+              ret = false;
+              break;
+            }
 
           return ret;
    }
