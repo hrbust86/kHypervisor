@@ -173,6 +173,7 @@
     <ClInclude Include="..\HyperPlatform\util_page_constants.h" />
     <ClInclude Include="..\HyperPlatform\vm.h" />
     <ClInclude Include="..\HyperPlatform\vmm.h" />
+    <ClInclude Include="..\SampleSvm\nest_svm_handler.h" />
     <ClInclude Include="..\SampleSvm\SimpleSvm.hpp" />
     <ClInclude Include="vmcs.h" />
     <ClInclude Include="vmx.h" />

@@ -851,8 +851,10 @@ BuildGernericVMCSMap()
 	{
 		for (index = 0; index <= VMX_HIGHEST_VMCS_ENCODING; index++)
 		{
-			if (g_vmcs_map[type][index] != 0xFFFFFFFF)
-				HYPERPLATFORM_LOG_DEBUG_SAFE("Type: %d Field: %d = value: %x \r\n", type, index, g_vmcs_map[type][index]);
+			if (g_vmcs_map[type][index] != 0xFFFFFFFF) {
+                 //HYPERPLATFORM_LOG_DEBUG_SAFE("Type: %d Field: %d = value: %x \r\n", type, index, g_vmcs_map[type][index]);
+                //HYPERPLATFORM_LOG_DEBUG("Type: %d Field: %d = value: %x \r\n", type, index, g_vmcs_map[type][index]);
+                  }
 		}
 	}
 }

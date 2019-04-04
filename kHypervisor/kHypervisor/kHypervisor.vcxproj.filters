@@ -108,6 +108,9 @@
     <ClInclude Include="..\SampleSvm\SimpleSvm.hpp">
       <Filter>SampleSvm</Filter>
     </ClInclude>
+    <ClInclude Include="..\SampleSvm\nest_svm_handler.h">
+      <Filter>SampleSvm</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="kHypervisor.inf" />

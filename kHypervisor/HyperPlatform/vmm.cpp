@@ -17,6 +17,7 @@
 #include "../kHypervisor/vmcs.h"
 #include "../kHypervisor/vmx.h"
 #include "../SampleSvm/SimpleSvm.hpp"
+#include "../SampleSvm/nest_svm_handler.h"
 
 #pragma warning(disable: 4505)
 extern "C" {
@@ -2413,6 +2414,7 @@ extern "C" {
           switch (uOpcode) 
           {
             case 0xDB010F: // vmsave
+                SvmVmsaveEmulate(guest_context);
                 break;
             case 0xDA010F: // VMLOAD
                 break;

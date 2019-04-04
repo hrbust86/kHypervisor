@@ -1,2 +1,49 @@
 #include "../HyperPlatform/util.h"
+#include "nest_svm_handler.h"
+#include "../HyperPlatform/vmm.h"
+#include "../kHypervisor/vmx_common.h"
 
+VOID SvmVmxonEmulate(_In_ GuestContext* guest_context) 
+{
+  VCPUVMX* nested_vmx = NULL;
+  ULONG64 InstructionPointer = 0;
+  ULONG64 StackPointer = 0;
+  ULONG64 vmxon_region_pa = 0;
+  ULONG64 guest_address = NULL;
+  VmControlStructure* vmxon_region_struct = NULL;
+  PROCESSOR_NUMBER number = {0};
+
+  InstructionPointer = {UtilVmRead64(VmcsField::kGuestRip)};
+  StackPointer = {UtilVmRead64(VmcsField::kGuestRsp)};   
+
+  if (VmmpGetvCpuMode(guest_context) == VmxMode) 
+  {
+    HYPERPLATFORM_LOG_DEBUG_SAFE(("Current vCPU already in VMX mode !"));
+    VMfailInvalid(VmmpGetFlagReg(guest_context));
+    return ;
+  } 
+
+  nested_vmx = (VCPUVMX*)ExAllocatePool(NonPagedPoolNx, sizeof(VCPUVMX));
+
+  nested_vmx->inRoot = RootMode;
+  nested_vmx->blockINITsignal = TRUE;
+  nested_vmx->blockAndDisableA20M = TRUE;
+  nested_vmx->vmcs02_pa = 0xFFFFFFFFFFFFFFFF;
+  nested_vmx->vmcs12_pa = 0xFFFFFFFFFFFFFFFF;
+  nested_vmx->svmVmcbGuest12_pa = 0xFFFFFFFFFFFFFFFF;
+  nested_vmx->svmVmcbHost12_pa = 0xFFFFFFFFFFFFFFFF;
+  __vmx_vmptrst(&nested_vmx->vmcs01_pa);
+  nested_vmx->vmxon_region = vmxon_region_pa;  // not uesd
+  nested_vmx->InitialCpuNumber = KeGetCurrentProcessorNumberEx(&number);
+
+  // vcpu etner vmx-root mode now
+  VmmpEnterVmxMode(guest_context);
+  VmmpSetvCpuVmx(guest_context, nested_vmx);
+
+}
+
+VOID SvmVmsaveEmulate(_In_ GuestContext* guest_context) 
+{
+    SvmVmxonEmulate(guest_context);
+
+}

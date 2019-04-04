@@ -10,7 +10,7 @@
 #define HYPERPLATFORM_VMM_H_
 
 #include <fltKernel.h>
-
+#include "../SampleSvm/SimpleSvm.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 //
 // macro utilities
@@ -53,6 +53,8 @@ typedef struct _VCPU_VMX
 	ULONG64   vmcs02_pa;				///VMCS02 , actual VMCS L1 will runs on
 	ULONG64   vmcs12_pa;				///VMCS12 , for L1's VMREAD and VMWRITE, as a shadow VMCS
 	ULONG64   vmcs01_pa;				///VMCS01 , Initial VMCS
+    ULONG64   svmVmcbGuest12_pa; // 
+    ULONG64   svmVmcbHost12_pa;   // 
 	ULONG     InitialCpuNumber;				///VCPU number
 	BOOLEAN   blockINITsignal;			///NOT USED
 	BOOLEAN   blockAndDisableA20M;		///NOT USED
