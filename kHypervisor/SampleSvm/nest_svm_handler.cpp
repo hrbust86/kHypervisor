@@ -2,6 +2,7 @@
 #include "nest_svm_handler.h"
 #include "../HyperPlatform/vmm.h"
 #include "../kHypervisor/vmx_common.h"
+#include "../HyperPlatform/asm.h"
 
 VOID SvmVmxonEmulate(_In_ GuestContext* guest_context) 
 {
@@ -90,7 +91,45 @@ VOID SvmVmsaveEmulate(_In_ GuestContext* guest_context)
              __vmx_vmclear(&NestedvCPU->vmcs02_pa);
         }    
 
+        ULONG64 guest_pa_address = 0;
+        ULONG64 guest_va_adress = 0;
+        const auto register_used = VmmpSelectRegister(0, guest_context); // rax
+        guest_pa_address = *register_used;
+        guest_va_adress = (ULONG64)UtilVaFromPa(guest_pa_address);
 
+//         Store to a VMCB at system - physical address rAX : FS, GS, TR,
+//             LDTR(including all hidden state) KernelGsBase STAR, LSTAR, CSTAR,
+//             SFMASK SYSENTER_CS, SYSENTER_ESP,
+//             SYSENTER_EIP
+        Gdtr gdtr = {};
+        __sgdt(&gdtr);
+        VMCB * SvmGuestVmcb = (VMCB *)guest_va_adress;
+        SvmGuestVmcb->StateSaveArea.FsSelector = UtilVmRead(VmcsField::kGuestFsSelector);
+        SvmGuestVmcb->StateSaveArea.FsAttrib = UtilVmRead(VmcsField::kGuestFsArBytes);
+        SvmGuestVmcb->StateSaveArea.FsLimit = UtilVmRead(VmcsField::kGuestFsLimit);
+        SvmGuestVmcb->StateSaveArea.FsBase = UtilVmRead64(VmcsField::kGuestFsBase);
+
+        SvmGuestVmcb->StateSaveArea.GsSelector = UtilVmRead(VmcsField::kGuestGsSelector);
+        SvmGuestVmcb->StateSaveArea.GsAttrib = UtilVmRead(VmcsField::kGuestGsArBytes);
+        SvmGuestVmcb->StateSaveArea.GsLimit = UtilVmRead(VmcsField::kGuestGsLimit);
+        SvmGuestVmcb->StateSaveArea.GsBase = UtilVmRead64(VmcsField::kGuestGsBase);
+
+        SvmGuestVmcb->StateSaveArea.TrSelector = UtilVmRead(VmcsField::kGuestTrSelector);
+        SvmGuestVmcb->StateSaveArea.TrAttrib = UtilVmRead(VmcsField::kGuestTrArBytes);
+        SvmGuestVmcb->StateSaveArea.TrLimit = UtilVmRead(VmcsField::kGuestTrLimit);
+        SvmGuestVmcb->StateSaveArea.TrBase = UtilVmRead64(VmcsField::kGuestTrBase);
+
+        SvmGuestVmcb->StateSaveArea.LdtrSelector = UtilVmRead(VmcsField::kGuestLdtrSelector);
+        SvmGuestVmcb->StateSaveArea.LdtrAttrib = UtilVmRead(VmcsField::kGuestLdtrArBytes);
+        SvmGuestVmcb->StateSaveArea.LdtrLimit = UtilVmRead(VmcsField::kGuestLdtrLimit);
+        SvmGuestVmcb->StateSaveArea.LdtrBase = UtilVmRead64(VmcsField::kGuestLdtrBase);
+
+        SvmGuestVmcb->StateSaveArea.KernelGsBase = UtilReadMsr(Msr::kIa32KernelGsBase);
+        SvmGuestVmcb->StateSaveArea.Star = UtilReadMsr(Msr::kIa32Star);
+        SvmGuestVmcb->StateSaveArea.LStar = UtilReadMsr(Msr::kIa32Lstar);
+        SvmGuestVmcb->StateSaveArea.SysenterCs = UtilVmRead64(VmcsField::kGuestSysenterCs);
+        SvmGuestVmcb->StateSaveArea.SysenterEsp = UtilVmRead64(VmcsField::kGuestSysenterEsp);
+        SvmGuestVmcb->StateSaveArea.SysenterEip = UtilVmRead64(VmcsField::kGuestSysenterEip);
 
     } while (FALSE);
 
