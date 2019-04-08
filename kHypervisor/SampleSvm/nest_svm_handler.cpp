@@ -16,12 +16,12 @@ VOID SvmVmxonEmulate(_In_ GuestContext* guest_context)
   InstructionPointer = {UtilVmRead64(VmcsField::kGuestRip)};
   StackPointer = {UtilVmRead64(VmcsField::kGuestRsp)};   
 
-  if (VmmpGetvCpuMode(guest_context) == VmxMode) 
-  {
-    HYPERPLATFORM_LOG_DEBUG_SAFE(("Current vCPU already in VMX mode !"));
-    VMfailInvalid(VmmpGetFlagReg(guest_context));
-    return ;
-  } 
+//   if (VmmpGetvCpuMode(guest_context) == VmxMode) 
+//   {
+//     HYPERPLATFORM_LOG_DEBUG_SAFE(("Current vCPU already in VMX mode !"));
+//     VMfailInvalid(VmmpGetFlagReg(guest_context));
+//     return ;
+//   } 
 
   nested_vmx = (VCPUVMX*)ExAllocatePool(NonPagedPoolNx, sizeof(VCPUVMX));
 
@@ -55,17 +55,43 @@ VOID SvmVmxonEmulate(_In_ GuestContext* guest_context)
 
 VOID SvmVmsaveEmulate(_In_ GuestContext* guest_context) 
 {
-    if (GetGuestCPL() != 0)
+    do 
     {
-        ThrowGerneralFaultInterrupt(); // #GP
-    }
+        if (GetGuestCPL() != 0)
+        {
+            ThrowGerneralFaultInterrupt(); // #GP
+            break;
+        }
 
-    VCPUVMX* NestedvCPU = VmmpGetVcpuVmx(guest_context);
-    if (NULL == NestedvCPU)
-    {
-         SvmVmxonEmulate(guest_context);
-    }
-   
-    
+        VCPUVMX* NestedvCPU = VmmpGetVcpuVmx(guest_context);
+        if (NULL == NestedvCPU)
+        {
+             SvmVmxonEmulate(guest_context);
+             if (VmmpGetvCpuMode(guest_context) != VmxMode) 
+             {
+                    HYPERPLATFORM_LOG_DEBUG_SAFE(("VMCLEAR: Current vCPU already in VMX mode ! \r\n"));
+                    ThrowGerneralFaultInterrupt();  // #GP
+                    break;
+             }
+             if (VmxGetVmxMode(VmmpGetVcpuVmx(guest_context)) != RootMode) 
+             {
+               // Inject ...'
+               HYPERPLATFORM_LOG_DEBUG_SAFE(("VMCLEAR : Unimplemented third level virualization \r\n"));
+               ThrowGerneralFaultInterrupt();  // #GP
+               break;
+             }
+             // clear
+             NestedvCPU = VmmpGetVcpuVmx(guest_context);
+             if (!NestedvCPU)
+             {
+               ThrowGerneralFaultInterrupt();  // #GP
+               break;
+             }
+             __vmx_vmclear(&NestedvCPU->vmcs02_pa);
+        }    
+
+
+
+    } while (FALSE);
 
 }
