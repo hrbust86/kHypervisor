@@ -3,6 +3,7 @@
 #include "../HyperPlatform/vmm.h"
 #include "../kHypervisor/vmx_common.h"
 #include "../HyperPlatform/asm.h"
+#include "../HyperPlatform/common.h"
 
 VOID SvmVmxonEmulate(_In_ GuestContext* guest_context) 
 {
@@ -198,5 +199,37 @@ VOID SvmVmloadEmulate(_In_ GuestContext* guest_context)
 //         LDTR(including all hidden state) KernelGsBase STAR, LSTAR, CSTAR,
 //         SFMASK SYSENTER_CS, SYSENTER_ESP, SYSENTER_EIP
 //         put into vmrun
+    } while (FALSE);
+}
+
+VOID SvmVmrunEmulate(_In_ GuestContext* guest_context) 
+{
+    do 
+    {
+        HYPERPLATFORM_COMMON_DBG_BREAK();
+        VCPUVMX* NestedvCPU = VmmpGetVcpuVmx(guest_context);
+        HYPERPLATFORM_LOG_DEBUG_SAFE("-----start vmrun---- \r\n");
+
+        if (GetGuestCPL() != 0)
+        {
+            ThrowGerneralFaultInterrupt(); // #GP
+            break;
+        }
+
+        if (!NestedvCPU)
+		{
+            ThrowGerneralFaultInterrupt();  // #GP
+			break;
+		}
+
+        // if VCPU not run in VMX mode 
+		if (VmxGetVmxMode(VmmpGetVcpuVmx(guest_context)) != RootMode)
+		{
+			// Inject ...'
+			HYPERPLATFORM_LOG_DEBUG(" Vmlaunch: Unimplemented third level virualization VMX: %I64x  VMCS12: %I64x \r\n", VmmpGetVcpuVmx(guest_context), NestedvCPU->vmcs12_pa);
+			ThrowGerneralFaultInterrupt();  // #GP
+			break;
+		}
+
     } while (FALSE);
 }
