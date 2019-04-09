@@ -2444,6 +2444,7 @@ extern "C" {
                 SvmVmsaveEmulate(guest_context);
                 break;
             case UD_Ivmload:
+                SvmVmloadEmulate(guest_context);
                 break;
             case UD_Ivmmcall:
                 break;

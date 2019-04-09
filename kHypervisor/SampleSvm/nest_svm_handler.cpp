@@ -134,3 +134,69 @@ VOID SvmVmsaveEmulate(_In_ GuestContext* guest_context)
     } while (FALSE);
 
 }
+
+VOID SvmVmloadEmulate(_In_ GuestContext* guest_context) 
+{
+    do 
+    {
+        if (VmmpGetvCpuMode(guest_context) != VmxMode)
+		{
+            HYPERPLATFORM_LOG_DEBUG_SAFE(("Current vCPU already in VMX mode ! \r\n"));
+            ThrowGerneralFaultInterrupt();  // #GP
+			break;
+		}
+
+        	// if VCPU not run in VMX mode 
+		if (VmxGetVmxMode(VmmpGetVcpuVmx(guest_context)) != RootMode)
+		{
+			// Inject ...'
+			HYPERPLATFORM_LOG_DEBUG_SAFE("VMPTRLD Unimplemented third level virualization %I64x \r\n", VmmpGetVcpuVmx(guest_context));
+		    ThrowGerneralFaultInterrupt();  // #GP
+			break;
+		}
+
+        VCPUVMX* nested_vmx = NULL;
+        PUCHAR      vmcs02_region_va = NULL;
+        ULONG64    vmcs02_region_pa = NULL; 
+        ULONG64 guest_pa_address = 0;
+        ULONG64 guest_va_adress = 0;
+        const auto register_used = VmmpSelectRegister(0, guest_context);  // rax
+        guest_pa_address = *register_used;
+        guest_va_adress = (ULONG64)UtilVaFromPa(guest_pa_address);
+
+        VMCB* SvmGuestVmcb = (VMCB*)guest_va_adress;
+
+        //if is it not page aglined
+        if (!CheckPageAlgined(guest_pa_address))
+		{
+			HYPERPLATFORM_LOG_DEBUG_SAFE(("VMPTRLD: not page aligned physical address %I64X ! \r\n"),
+            guest_pa_address);
+			ThrowGerneralFaultInterrupt();  // #GP
+			break;
+		}
+
+        vmcs02_region_va = (PUCHAR)ExAllocatePool(NonPagedPoolNx, PAGE_SIZE); 
+		if (!vmcs02_region_va)
+		{
+            HYPERPLATFORM_LOG_DEBUG_SAFE(("VMPTRLD: vmcs02_region_va NULL ! \r\n"));
+			ThrowGerneralFaultInterrupt();  // #GP
+			break;
+		}
+
+        nested_vmx = VmmpGetVcpuVmx(guest_context);
+
+        RtlZeroMemory(vmcs02_region_va, PAGE_SIZE); 
+        vmcs02_region_pa = UtilPaFromVa(vmcs02_region_va); 
+        nested_vmx->vmcs02_pa = vmcs02_region_pa;		    //vmcs02' physical address - DIRECT VMREAD/WRITE
+        nested_vmx->kVirtualProcessorId = (USHORT)KeGetCurrentProcessorNumberEx(nullptr) + 1;
+
+        HYPERPLATFORM_LOG_DEBUG_SAFE("[VMPTRLD] Run Successfully \r\n");
+        HYPERPLATFORM_LOG_DEBUG_SAFE("[VMPTRLD] VMCS02 PA: %I64X VA: %I64X  \r\n", vmcs02_region_pa, vmcs02_region_va);
+        HYPERPLATFORM_LOG_DEBUG_SAFE("[VMPTRLD] Current Cpu: %x \r\n", nested_vmx->InitialCpuNumber);
+
+//         Load from a VMCB at system - physical address rAX : FS, GS, TR,
+//         LDTR(including all hidden state) KernelGsBase STAR, LSTAR, CSTAR,
+//         SFMASK SYSENTER_CS, SYSENTER_ESP, SYSENTER_EIP
+//         put into vmrun
+    } while (FALSE);
+}
