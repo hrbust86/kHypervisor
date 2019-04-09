@@ -332,11 +332,13 @@ extern "C" {
                 RtlInitializeBitMap(&bitmap_other_read_low_header, 
 					reinterpret_cast<PULONG>(bitmap_other_read_low), 1024 * CHAR_BIT);
 				RtlSetBits(&bitmap_other_read_low_header, (SVM_MSR_VM_CR & 0xFFFF), 1);
+                RtlSetBits(&bitmap_other_read_low_header, (SVM_MSR_VM_HSAVE_PA & 0xFFFF), 1);
 
 				RTL_BITMAP bitmap_other_write_low_header = {};
 				RtlInitializeBitMap(&bitmap_other_write_low_header, 
 					reinterpret_cast<PULONG>(bitmap_other_write_low), 1024 * CHAR_BIT);
 				RtlSetBits(&bitmap_other_write_low_header, (SVM_MSR_VM_CR & 0xFFFF), 1);
+                RtlSetBits(&bitmap_other_write_low_header, (SVM_MSR_VM_HSAVE_PA & 0xFFFF), 1);
 
                 RTL_BITMAP bitmap_write_high_header = {};
                 RtlInitializeBitMap(&bitmap_write_high_header, 
@@ -421,7 +423,7 @@ extern "C" {
 		processor_data->vcpu_vmx = NULL;
 		processor_data->CpuMode = ProtectedMode;
         processor_data->GuestMsrEFER.QuadPart = __readmsr((ULONGLONG)Msr::kIa32Efer);
-
+        processor_data->GuestSvmHsave.QuadPart = 0;
 		InterlockedIncrement(&processor_data->shared_data->reference_count);
 
 		// Set up EPT
