@@ -280,6 +280,7 @@ extern "C" {
 		}
 		RtlZeroMemory(msr_bitmap, 2*PAGE_SIZE);
 
+//		just for amd .  diff from intel vt
 // 		MSRPM Byte Offset					MSR Range 
 // 			000h每7FFh								0000_0000h每0000_1FFFh 
 // 			800h每FFFh								C000_0000h每C000_1FFFh 
